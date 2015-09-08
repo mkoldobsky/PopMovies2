@@ -6,9 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class DetailActivityFragment extends Fragment {
+public class DetailFragment extends Fragment {
 
-    public DetailActivityFragment() {
+    public DetailFragment() {
     }
 
     @Override

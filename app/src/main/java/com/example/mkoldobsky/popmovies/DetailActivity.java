@@ -23,8 +23,9 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        Bundle movieBundle = getIntent().getExtras();
-        mMovie = new Movie(movieBundle);
+//        Bundle movieBundle = getIntent().getExtras();
+//        mMovie = new Movie(movieBundle);
+        mMovie = (Movie)getIntent().getParcelableExtra(this.getString(R.string.movie_key));
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

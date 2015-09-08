@@ -35,14 +35,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MoviesFragment extends Fragment {
 
-    private static final String MOVIE_KEY = "movies";
+    private static final String MOVIES_KEY = "movies";
     MovieAdapter mMovieAdapter;
     ArrayList<Movie> mMovies;
     boolean mError;
@@ -69,7 +68,7 @@ public class MoviesFragment extends Fragment {
 
         if (savedInstanceState != null)
         {
-            mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIE_KEY);
+            mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
         }
@@ -90,7 +89,7 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie selectedMovie = mMovies.get(position);
-                intent.putExtras(selectedMovie.getBundle());
+                intent.putExtra(getActivity().getString(R.string.movie_key), selectedMovie);
                 getActivity().startActivity(intent);
             }
         });
@@ -108,7 +107,7 @@ public class MoviesFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(MOVIE_KEY, (ArrayList<? extends Parcelable>) mMovies);
+        outState.putParcelableArrayList(MOVIES_KEY, (ArrayList<? extends Parcelable>) mMovies);
     }
 
 
@@ -229,20 +228,7 @@ public class MoviesFragment extends Fragment {
 
 
             try {
-                // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
-                //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
-                final String FORECAST_BASE_URL =
-                        "https://api.themoviedb.org/3/discover/movie?";
-                final String API_KEY_PARAM = "api_key";
-                final String SORT_BY_PARAM = "sort_by";
-                final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
-
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
-                        .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
+                URL url = new URL(getUri(sortOrder).toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -293,6 +279,21 @@ public class MoviesFragment extends Fragment {
                 }
             }
             return null;
+        }
+
+        private Uri getUri(String sortOrder) {
+            // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
+            //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
+            final String FORECAST_BASE_URL =
+                    "https://api.themoviedb.org/3/discover/movie?";
+            final String API_KEY_PARAM = "api_key";
+            final String SORT_BY_PARAM = "sort_by";
+            final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
+
+            return Uri.parse(FORECAST_BASE_URL).buildUpon()
+                    .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
+                    .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
+                    .build();
         }
 
         @Override
