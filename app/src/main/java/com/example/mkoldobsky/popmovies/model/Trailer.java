@@ -19,4 +19,8 @@ public class Trailer {
     public String getName() {
         return name;
     }
+
+    public String getKey() {
+        return key;
+    }
 }
