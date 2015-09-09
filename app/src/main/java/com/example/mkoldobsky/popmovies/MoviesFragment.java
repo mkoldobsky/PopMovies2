@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.example.mkoldobsky.popmovies.common.Constants;
 import com.example.mkoldobsky.popmovies.common.Utility;
+import com.example.mkoldobsky.popmovies.helper.MovieFactoryMethod;
 import com.example.mkoldobsky.popmovies.model.Movie;
 
 import org.json.JSONArray;
@@ -112,7 +113,7 @@ public class MoviesFragment extends Fragment {
 
 
     private void updateMovies(String sortOrder) {
-        if (isNetworkAvailable()) {
+        if (Utility.isNetworkAvailable(getActivity())) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
         } else {
@@ -153,11 +154,6 @@ public class MoviesFragment extends Fragment {
         private static final String MOST_POPULAR = "most_popular";
         private static final String MOST_POPULAR_VALUE = "popularity.desc";
         private static final String HIGHEST_RATED_VALUE = "vote_average.desc";
-        public static final String ORIGINAL_TITLE = "original_title";
-        public static final String OVERVIEW = "overview";
-        public static final String POSTER_PATH = "poster_path";
-        public static final String VOTE_AVERAGE = "vote_average";
-        public static final String RELEASE_DATE = "release_date";
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
 
@@ -177,25 +173,16 @@ public class MoviesFragment extends Fragment {
             Log.v(LOG_TAG, movieJsonString);
 
             try {
-                JSONObject movieJson = new JSONObject(movieJsonString);
-                JSONArray movieArray = movieJson.getJSONArray(MDB_RESULTS);
+                JSONObject moviesJson = new JSONObject(movieJsonString);
+                JSONArray movieArray = moviesJson.getJSONArray(MDB_RESULTS);
 
 
 
 
                 for(int i = 0; i < movieArray.length(); i++) {
+                    JSONObject movieJson = movieArray.getJSONObject(i);
 
-                    JSONObject movie = movieArray.getJSONObject(i);
-
-                    String title = movie.getString(ORIGINAL_TITLE);
-                    String plot = movie.getString(OVERVIEW);
-                    String path = movie.getString(POSTER_PATH);
-                    Double vote = movie.getDouble(VOTE_AVERAGE);
-                    String date = movie.getString(RELEASE_DATE);
-
-
-                    results.add(new Movie(title, path, plot, vote, date));
-
+                    results.add(MovieFactoryMethod.create(movieJson));
                 }
 
 
@@ -317,11 +304,4 @@ public class MoviesFragment extends Fragment {
         toast.show();
     }
 
-    //Based on a stackoverflow snippet
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
 }

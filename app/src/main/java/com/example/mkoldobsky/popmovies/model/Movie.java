@@ -3,15 +3,19 @@ package com.example.mkoldobsky.popmovies.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
+
 public class Movie implements Parcelable{
+    private String id;
     private String title;
     private String posterPath;
     private String plotSynopsis;
     private Double voteAverage;
     private String releaseDate;
+    private ArrayList<Trailer> trailers;
 
-    public Movie(String title, String posterPath, String plot, Double vote, String date){
-
+    public Movie(String id, String title, String posterPath, String plot, Double vote, String date){
+        this.id = id;
         this.title = title;
         this.posterPath = posterPath;
         this.plotSynopsis = plot;
@@ -20,6 +24,7 @@ public class Movie implements Parcelable{
     }
 
     public Movie(Parcel in) {
+        id = in.readString();
         title = in.readString();
         posterPath = in.readString();
         plotSynopsis = in.readString();
@@ -63,6 +68,7 @@ public class Movie implements Parcelable{
         return releaseDate;
     }
 
+
     @Override
     public int describeContents() {
         return 0;
@@ -70,6 +76,7 @@ public class Movie implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(title);
         dest.writeString(posterPath);
         dest.writeString(plotSynopsis);
@@ -86,4 +93,16 @@ public class Movie implements Parcelable{
             return new Movie[size];
         }
     };
+
+    public ArrayList<Trailer> getTrailers() {
+        return trailers;
+    }
+
+    public void setTrailers(ArrayList<Trailer> trailers) {
+        this.trailers = trailers;
+    }
+
+    public String getId() {
+        return id;
+    }
 }
