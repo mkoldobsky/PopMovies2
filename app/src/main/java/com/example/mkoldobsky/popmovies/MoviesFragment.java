@@ -67,17 +67,18 @@ public class MoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movies, container, false);
 
+        String sortOrder = Utility.getPrefSortOrder(getActivity());
+
         if (savedInstanceState != null)
         {
             mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
+            updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
         }
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
 
-        String sortOrder = Utility.getPrefSortOrder(getActivity());
-        updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
         Utility.setPrefSortOrder(getActivity(), sortOrder);
         setActivityTitle(getContext().getString(sortOrder == Constants.MOST_POPULAR_SORT_ORDER ?
                 R.string.action_most_popular : R.string.action_highest_rated));
@@ -94,7 +95,6 @@ public class MoviesFragment extends Fragment {
                 getActivity().startActivity(intent);
             }
         });
-
 
         return rootView;
     }
