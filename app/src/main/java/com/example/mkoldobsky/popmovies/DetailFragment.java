@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,24 +60,41 @@ public class DetailFragment extends Fragment {
 
     public void setMovie(Movie movie){
         this.mMovie = movie;
-        setMovieAdditionalInfo();
 
         createViewHolder();
+
+        mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        mViewHolder.trailersRecyclerView.setLayoutManager(linearLayoutManager);
+        mViewHolder.trailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
+
+        setMovieAdditionalInfo();
+
         updateDetails();
         loadImages();
     }
 
     private void populateTrailers() {
-        mTrailerAdapter = new TrailerAdapter(getActivity(), R.layout.list_item_trailer, mMovie.getTrailers());
-        mViewHolder.trailerListView.setAdapter(mTrailerAdapter);
-        mViewHolder.trailerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ArrayList<Trailer> trailers = mMovie.getTrailers();
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="+ trailers.get(position).getKey())));
-            }
-        });
+//        mViewHolder.trailerListView.setAdapter(mTrailerAdapter);
+//        mViewHolder.trailerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                ArrayList<Trailer> trailers = mMovie.getTrailers();
+//                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + trailers.get(position).getKey())));
+//            }
+//        });
 
+//        mViewHolder.trailersRecyclerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                ArrayList<Trailer> trailers = mMovie.getTrailers();
+//                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="+ trailers.get(position).getKey())));
+//            }
+//        });
+        mTrailerAdapter.notifyDataSetChanged();
     }
 
     private void setMovieAdditionalInfo() {
@@ -94,7 +114,7 @@ public class DetailFragment extends Fragment {
         mViewHolder.plotSynopsisTextView = (TextView)mRootView.findViewById(R.id.plot_synopsis_textview);
         mViewHolder.releaseDateTextView = (TextView)mRootView.findViewById(R.id.release_date_textview);
         mViewHolder.userRatingBar = (RatingBar)mRootView.findViewById(R.id.user_rating_bar);
-        mViewHolder.trailerListView = (ListView)mRootView.findViewById(R.id.trailers_list_view);
+        mViewHolder.trailersRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
     }
 
     private void updateDetails() {
@@ -203,7 +223,7 @@ public class DetailFragment extends Fragment {
                     return null;
                 }
                 jsonString = buffer.toString();
-                mMovie.setTrailers(getMovieTrailersFromJson(jsonString));
+                mMovie.addTrailers(getMovieTrailersFromJson(jsonString));
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 mError = true;
@@ -264,6 +284,6 @@ public class DetailFragment extends Fragment {
         TextView plotSynopsisTextView;
         TextView releaseDateTextView;
         RatingBar userRatingBar;
-        ListView trailerListView;
+        RecyclerView trailersRecyclerView;
     }
 }

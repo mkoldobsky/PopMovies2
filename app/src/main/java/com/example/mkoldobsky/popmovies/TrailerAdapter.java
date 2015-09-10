@@ -1,93 +1,69 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.app.Activity;
 import android.content.Context;
-import android.net.Uri;
-import android.text.Html;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.mkoldobsky.popmovies.model.Movie;
 import com.example.mkoldobsky.popmovies.model.Trailer;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
+public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.ViewHolder>{
 
-public class TrailerAdapter extends ArrayAdapter<Trailer> {
-    private Context mContext;
-    private int mLayoutResourceId;
     private ArrayList<Trailer> mTrailers;
+    private int mRowLayout;
+    private Context mContext;
 
-    public TrailerAdapter(Context c, int layoutResourceId, ArrayList<Trailer> trailers) {
-        super(c, layoutResourceId, trailers);
-        mContext = c;
-        this.mLayoutResourceId = layoutResourceId;
+    public TrailerAdapter(Context context, ArrayList<Trailer> trailers, int rowLayout) {
         this.mTrailers = trailers;
+        this.mRowLayout = rowLayout;
+        this.mContext = context;
     }
 
-
-    public int getCount() {
-        return mTrailers.size();
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View row = LayoutInflater.from(viewGroup.getContext()).inflate(mRowLayout, viewGroup, false);
+        return new ViewHolder(row);
     }
 
-    public Trailer getItem(int position) {
-        return mTrailers.get(position);
-    }
-
-    public long getItemId(int position) {
-        return position;
-    }
-
-    // create a new ImageView for each item referenced by the Adapter
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View row = convertView;
-        ViewHolder holder;
-
-        if (row == null) {
-            LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
-            row = inflater.inflate(mLayoutResourceId, parent, false);
-            holder = new ViewHolder();
-            holder.titleTextView = (TextView) row.findViewById(R.id.list_item_trailer_text_view);
-            holder.imageView = (ImageView) row.findViewById(R.id.list_item_trailer_image_view);
-            holder.imageView.setAdjustViewBounds(true);
-            row.setTag(holder);
-        } else {
-            holder = (ViewHolder) row.getTag();
-        }
-
-        Trailer trailer = mTrailers.get(position);
-        holder.titleTextView.setText(Html.fromHtml(trailer.getName()));
-
-//        Uri builtUri = Uri.parse("http://image.tmdb.org/t/p/w185" + trailer.getPosterPath()).buildUpon()
-//                .build();
+    @Override
+    public void onBindViewHolder(ViewHolder viewHolder, int i) {
+        Trailer trailer = mTrailers.get(i);
+        viewHolder.name.setText(trailer.getName());
         Picasso.with(mContext)
                 .load("@drawable/error")
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.error)
                 .centerCrop()
                 .fit()
-                .into(holder.imageView);
-        return row;
+                .into(viewHolder.image);
     }
 
-    public void updateData(ArrayList<Trailer> newData) {
-        if (newData != null){
-            mTrailers.clear();
-            mTrailers.addAll(newData);
-            notifyDataSetChanged();
+    @Override
+    public int getItemCount() {
+        return mTrailers == null ? 0 : mTrailers.size();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public TextView name;
+        public ImageView image;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            name = (TextView) itemView.findViewById(R.id.list_item_trailer_text_view);
+            image = (ImageView)itemView.findViewById(R.id.list_item_trailer_image_view);
         }
 
     }
-
-    static class ViewHolder {
-        TextView titleTextView;
-        ImageView imageView;
-    }
-
-    //http://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=AJ0sW7KOFhU&format=json
 }
+
+
+//    //http://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=AJ0sW7KOFhU&format=json
+
+
