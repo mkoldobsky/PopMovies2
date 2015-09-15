@@ -18,8 +18,10 @@ import android.widget.Toast;
 
 import com.example.mkoldobsky.popmovies.common.Constants;
 import com.example.mkoldobsky.popmovies.common.Utility;
+import com.example.mkoldobsky.popmovies.helper.MovieReviewFactoryMethod;
 import com.example.mkoldobsky.popmovies.helper.MovieTrailerFactoryMethod;
 import com.example.mkoldobsky.popmovies.model.Movie;
+import com.example.mkoldobsky.popmovies.model.Review;
 import com.example.mkoldobsky.popmovies.model.Trailer;
 import com.squareup.picasso.Picasso;
 
@@ -43,7 +45,7 @@ public class DetailFragment extends Fragment {
     private boolean mError;
     private String mErrorMessage;
     TrailerAdapter mTrailerAdapter;
-    RecyclerView mRecyclerView;
+    ReviewAdapter mReviewAdapter;
 
     public DetailFragment() {
     }
@@ -60,42 +62,44 @@ public class DetailFragment extends Fragment {
 
         createViewHolder();
 
-        mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
-
-        mRecyclerView.setLayoutManager(linearLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setHasFixedSize(true);
+        initializeTrailers();
+        initializeReviews();
 
         setMovieAdditionalInfo();
 
-        mRecyclerView.setAdapter(mTrailerAdapter);
+        mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
+        mViewHolder.reviewsRecyclerView.setAdapter(mReviewAdapter);
 
 
         updateDetails();
         loadImages();
     }
 
-    private void populateTrailers() {
-//        mViewHolder.trailerListView.setAdapter(mTrailerAdapter);
-//        mViewHolder.trailerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                ArrayList<Trailer> trailers = mMovie.getTrailers();
-//                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + trailers.get(position).getKey())));
-//            }
-//        });
+    private void initializeTrailers() {
+        mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        mViewHolder.trailersRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
 
-//        mViewHolder.trailersRecyclerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                ArrayList<Trailer> trailers = mMovie.getTrailers();
-//                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="+ trailers.get(position).getKey())));
-//            }
-//        });
+        mViewHolder.trailersRecyclerView.setLayoutManager(linearLayoutManager);
+        mViewHolder.trailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mViewHolder.trailersRecyclerView.setHasFixedSize(true);
+    }
+
+    private void initializeReviews() {
+        mReviewAdapter = new ReviewAdapter(mMovie.getReviews(), R.layout.list_item_review);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
+
+        mViewHolder.reviewsRecyclerView.setLayoutManager(linearLayoutManager);
+        mViewHolder.reviewsRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mViewHolder.reviewsRecyclerView.setHasFixedSize(true);
+    }
+
+    private void populateTrailers() {
         mTrailerAdapter.notifyDataSetChanged();
+        mReviewAdapter.notifyDataSetChanged();
     }
 
     private void setMovieAdditionalInfo() {
@@ -116,6 +120,7 @@ public class DetailFragment extends Fragment {
         mViewHolder.releaseDateTextView = (TextView)mRootView.findViewById(R.id.release_date_textview);
         mViewHolder.userRatingBar = (RatingBar)mRootView.findViewById(R.id.user_rating_bar);
         mViewHolder.trailersRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
+        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
     }
 
     private void updateDetails() {
@@ -143,7 +148,6 @@ public class DetailFragment extends Fragment {
     public class FetchMovieInfoTask extends AsyncTask<String, Void, Void> {
 
         private final String LOG_TAG = FetchMovieInfoTask.class.getSimpleName();
-
 
         public FetchMovieInfoTask() {
         }
@@ -178,6 +182,35 @@ public class DetailFragment extends Fragment {
             return results;
         }
 
+        private ArrayList<Review> getMovieReviewsFromJson(String jsonString)
+                throws JSONException {
+
+            final String MDB_RESULTS = "results";
+
+            ArrayList<Review> results = new ArrayList<>();
+
+            Log.v(LOG_TAG, jsonString);
+
+            try {
+                JSONObject reviewsJson = new JSONObject(jsonString);
+                JSONArray reviewArray = reviewsJson.getJSONArray(MDB_RESULTS);
+
+                for(int i = 0; i < reviewArray.length(); i++) {
+
+                    JSONObject review = reviewArray.getJSONObject(i);
+
+                    results.add(MovieReviewFactoryMethod.create(review));
+                }
+
+                Log.d(LOG_TAG, "Complete. " + reviewArray.length() + " Reviews Fetched");
+
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
+            return results;
+        }
+
         @Override
         protected Void doInBackground(String... params) {
 
@@ -195,6 +228,13 @@ public class DetailFragment extends Fragment {
             String jsonString;
 
 
+            if (getTrailers(urlConnection, reader)) return null;
+            if (getReviews(urlConnection, reader)) return null;
+            return null;
+        }
+
+        private boolean getTrailers(HttpURLConnection urlConnection, BufferedReader reader) {
+            String jsonString;
             try {
                 URL url = new URL(getTrailersUri(mMovie.getId()).toString());
 
@@ -206,7 +246,7 @@ public class DetailFragment extends Fragment {
                 StringBuffer buffer = new StringBuffer();
                 if (inputStream == null) {
                     // Nothing to do.
-                    return null;
+                    return true;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -220,7 +260,7 @@ public class DetailFragment extends Fragment {
 
                 if (buffer.length() == 0) {
                     // Stream was empty.  No point in parsing.
-                    return null;
+                    return true;
                 }
                 jsonString = buffer.toString();
                 mMovie.addTrailers(getMovieTrailersFromJson(jsonString));
@@ -246,7 +286,63 @@ public class DetailFragment extends Fragment {
                     }
                 }
             }
-            return null;
+            return false;
+        }
+
+        private boolean getReviews(HttpURLConnection urlConnection, BufferedReader reader) {
+            String jsonString;
+            try {
+                URL url = new URL(getReviewsUri(mMovie.getId()).toString());
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return true;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                    // But it does make debugging a *lot* easier if you print out the completed
+                    // buffer for debugging.
+                    buffer.append(line).append("\n");
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return true;
+                }
+                jsonString = buffer.toString();
+                mMovie.addReviews(getMovieReviewsFromJson(jsonString));
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Error ", e);
+                mError = true;
+                mErrorMessage = e.getMessage();
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+                mError = true;
+                mErrorMessage = e.getMessage();
+            } finally {
+
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e(LOG_TAG, "Error closing stream", e);
+                    }
+                }
+            }
+            return false;
         }
 
         private Uri getTrailersUri(String id) {
@@ -259,6 +355,18 @@ public class DetailFragment extends Fragment {
                     .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
                     .build();
         }
+
+        private Uri getReviewsUri(String id) {
+            // https://api.themoviedb.org/3/movie/550/videos?api_key=xxxx
+            final String BASE_URL =
+                    "https://api.themoviedb.org/3/movie/"+ id +"/reviews?";
+            final String API_KEY_PARAM = "api_key";
+
+            return Uri.parse(BASE_URL).buildUpon()
+                    .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
+                    .build();
+        }
+
 
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -285,5 +393,6 @@ public class DetailFragment extends Fragment {
         TextView releaseDateTextView;
         RatingBar userRatingBar;
         RecyclerView trailersRecyclerView;
+        RecyclerView reviewsRecyclerView;
     }
 }

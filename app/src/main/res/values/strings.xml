@@ -21,5 +21,6 @@
     <string name="network_error">Network unavailable.</string>
     <string name="movie_key">movie</string>
     <string name="movie_trailers">Trailers</string>
+    <string name="movie_reviews">Reviews</string>
 
 </resources>
