@@ -1,30 +1,55 @@
 package com.example.mkoldobsky.popmovies;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.mkoldobsky.popmovies.common.Constants;
+import com.example.mkoldobsky.popmovies.common.Utility;
+import com.example.mkoldobsky.popmovies.helper.MovieTrailerFactoryMethod;
 import com.example.mkoldobsky.popmovies.model.Movie;
+import com.example.mkoldobsky.popmovies.model.Trailer;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
 public class DetailActivity extends AppCompatActivity {
     Movie mMovie;
-    ViewHolder viewHolder;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        Bundle movieBundle = getIntent().getExtras();
-        mMovie = new Movie(movieBundle);
+        mMovie = (Movie)getIntent().getParcelableExtra(this.getString(R.string.movie_key));
+        DetailFragment fragment = (DetailFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_detail);
+        fragment.setMovie(mMovie);
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -33,36 +58,6 @@ public class DetailActivity extends AppCompatActivity {
                 (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(mMovie.getTitle());
 
-        viewHolder = new ViewHolder();
-        viewHolder.titleTextView = (TextView)findViewById(R.id.movie_title_textview);
-        viewHolder.moviePosterImageView = (ImageView)findViewById(R.id.movie_poster_imageview);
-        viewHolder.plotSynopsisTextView = (TextView) findViewById(R.id.plot_synopsis_textview);
-        viewHolder.releaseDateTextView = (TextView)findViewById(R.id.release_date_textview);
-        viewHolder.userRatingBar = (RatingBar)findViewById(R.id.user_rating_bar);
-
-        updateDetails();
-        loadImages();
-    }
-
-    private void updateDetails() {
-        viewHolder.titleTextView.setText(mMovie.getTitle());
-        viewHolder.plotSynopsisTextView.setText(this.getText(R.string.not_available));
-        viewHolder.releaseDateTextView.setText(this.getText(R.string.not_available));
-        if (mMovie.getPlotSynopsis() != null && !mMovie.getPlotSynopsis().equals("null")) {
-            viewHolder.plotSynopsisTextView.setText(mMovie.getPlotSynopsis());
-        }
-        if (mMovie.getReleaseDate() != null && !mMovie.getReleaseDate().equals("null")) {
-            viewHolder.releaseDateTextView.setText(mMovie.getReleaseDate());
-        }
-        viewHolder.userRatingBar.setRating(mMovie.getVoteAverage().floatValue() / 2);
-    }
-
-    private void loadImages() {
-        final ImageView imageView = (ImageView) findViewById(R.id.movie_poster);
-        Uri builtUri = Uri.parse("http://image.tmdb.org/t/p/w185" + mMovie.getPosterPath()).buildUpon()
-                .build();
-        Picasso.with(this).load(builtUri.toString()).into(imageView);
-        Picasso.with(this).load(builtUri.toString()).into(viewHolder.moviePosterImageView);
     }
 
     @Override
@@ -74,14 +69,5 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
-    }
-
-    static class ViewHolder {
-        TextView titleTextView;
-        ImageView moviePosterImageView;
-        TextView plotSynopsisTextView;
-        TextView releaseDateTextView;
-        RatingBar userRatingBar;
-
     }
 }

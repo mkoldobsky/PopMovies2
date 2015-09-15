@@ -19,5 +19,7 @@
 
     <string name="not_available">N/A</string>
     <string name="network_error">Network unavailable.</string>
+    <string name="movie_key">movie</string>
+    <string name="movie_trailers">Trailers</string>
 
 </resources>

@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.example.mkoldobsky.popmovies.common.Constants;
 import com.example.mkoldobsky.popmovies.common.Utility;
+import com.example.mkoldobsky.popmovies.helper.MovieFactoryMethod;
 import com.example.mkoldobsky.popmovies.model.Movie;
 
 import org.json.JSONArray;
@@ -35,14 +36,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MoviesFragment extends Fragment {
 
-    private static final String MOVIE_KEY = "movies";
+    private static final String MOVIES_KEY = "movies";
     MovieAdapter mMovieAdapter;
     ArrayList<Movie> mMovies;
     boolean mError;
@@ -67,17 +67,18 @@ public class MoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movies, container, false);
 
+        String sortOrder = Utility.getPrefSortOrder(getActivity());
+
         if (savedInstanceState != null)
         {
-            mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIE_KEY);
+            mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
+            updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
         }
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
 
-        String sortOrder = Utility.getPrefSortOrder(getActivity());
-        updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
         Utility.setPrefSortOrder(getActivity(), sortOrder);
         setActivityTitle(getContext().getString(sortOrder == Constants.MOST_POPULAR_SORT_ORDER ?
                 R.string.action_most_popular : R.string.action_highest_rated));
@@ -90,11 +91,10 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie selectedMovie = mMovies.get(position);
-                intent.putExtras(selectedMovie.getBundle());
+                intent.putExtra(getActivity().getString(R.string.movie_key), selectedMovie);
                 getActivity().startActivity(intent);
             }
         });
-
 
         return rootView;
     }
@@ -108,12 +108,12 @@ public class MoviesFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(MOVIE_KEY, (ArrayList<? extends Parcelable>) mMovies);
+        outState.putParcelableArrayList(MOVIES_KEY, (ArrayList<? extends Parcelable>) mMovies);
     }
 
 
     private void updateMovies(String sortOrder) {
-        if (isNetworkAvailable()) {
+        if (Utility.isNetworkAvailable(getActivity())) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
         } else {
@@ -154,11 +154,6 @@ public class MoviesFragment extends Fragment {
         private static final String MOST_POPULAR = "most_popular";
         private static final String MOST_POPULAR_VALUE = "popularity.desc";
         private static final String HIGHEST_RATED_VALUE = "vote_average.desc";
-        public static final String ORIGINAL_TITLE = "original_title";
-        public static final String OVERVIEW = "overview";
-        public static final String POSTER_PATH = "poster_path";
-        public static final String VOTE_AVERAGE = "vote_average";
-        public static final String RELEASE_DATE = "release_date";
         private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
 
 
@@ -178,25 +173,16 @@ public class MoviesFragment extends Fragment {
             Log.v(LOG_TAG, movieJsonString);
 
             try {
-                JSONObject movieJson = new JSONObject(movieJsonString);
-                JSONArray movieArray = movieJson.getJSONArray(MDB_RESULTS);
+                JSONObject moviesJson = new JSONObject(movieJsonString);
+                JSONArray movieArray = moviesJson.getJSONArray(MDB_RESULTS);
 
 
 
 
                 for(int i = 0; i < movieArray.length(); i++) {
+                    JSONObject movieJson = movieArray.getJSONObject(i);
 
-                    JSONObject movie = movieArray.getJSONObject(i);
-
-                    String title = movie.getString(ORIGINAL_TITLE);
-                    String plot = movie.getString(OVERVIEW);
-                    String path = movie.getString(POSTER_PATH);
-                    Double vote = movie.getDouble(VOTE_AVERAGE);
-                    String date = movie.getString(RELEASE_DATE);
-
-
-                    results.add(new Movie(title, path, plot, vote, date));
-
+                    results.add(MovieFactoryMethod.create(movieJson));
                 }
 
 
@@ -229,20 +215,7 @@ public class MoviesFragment extends Fragment {
 
 
             try {
-                // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
-                //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
-                final String FORECAST_BASE_URL =
-                        "https://api.themoviedb.org/3/discover/movie?";
-                final String API_KEY_PARAM = "api_key";
-                final String SORT_BY_PARAM = "sort_by";
-                final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
-
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
-                        .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
+                URL url = new URL(getUri(sortOrder).toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -295,6 +268,21 @@ public class MoviesFragment extends Fragment {
             return null;
         }
 
+        private Uri getUri(String sortOrder) {
+            // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
+            //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
+            final String FORECAST_BASE_URL =
+                    "https://api.themoviedb.org/3/discover/movie?";
+            final String API_KEY_PARAM = "api_key";
+            final String SORT_BY_PARAM = "sort_by";
+            final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
+
+            return Uri.parse(FORECAST_BASE_URL).buildUpon()
+                    .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
+                    .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
+                    .build();
+        }
+
         @Override
         protected void onPostExecute(ArrayList<Movie> result) {
             if (mError){
@@ -316,11 +304,4 @@ public class MoviesFragment extends Fragment {
         toast.show();
     }
 
-    //Based on a stackoverflow snippet
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
 }

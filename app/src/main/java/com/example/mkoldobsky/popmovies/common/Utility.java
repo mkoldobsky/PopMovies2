@@ -2,6 +2,8 @@ package com.example.mkoldobsky.popmovies.common;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 import com.example.mkoldobsky.popmovies.R;
@@ -18,5 +20,14 @@ public class Utility {
         edit.putString(context.getString(R.string.pref_sort_order_key), sortOrder);
         edit.apply();
     }
+
+    //Based on a stackoverflow snippet
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
 
 }
