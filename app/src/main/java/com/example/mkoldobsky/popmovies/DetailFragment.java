@@ -1,11 +1,9 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,9 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +43,7 @@ public class DetailFragment extends Fragment {
     private boolean mError;
     private String mErrorMessage;
     TrailerAdapter mTrailerAdapter;
+    RecyclerView mRecyclerView;
 
     public DetailFragment() {
     }
@@ -66,12 +63,16 @@ public class DetailFragment extends Fragment {
         mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mViewHolder.trailersRecyclerView.setLayoutManager(linearLayoutManager);
-        mViewHolder.trailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
 
-        mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
+        mRecyclerView.setLayoutManager(linearLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setHasFixedSize(true);
 
         setMovieAdditionalInfo();
+
+        mRecyclerView.setAdapter(mTrailerAdapter);
+
 
         updateDetails();
         loadImages();
@@ -183,7 +184,6 @@ public class DetailFragment extends Fragment {
             if (params.length == 0) {
                 return null;
             }
-            String updateParam = params[0];
 
             mError = false;
             mErrorMessage = "";
@@ -215,7 +215,7 @@ public class DetailFragment extends Fragment {
                     // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                     // But it does make debugging a *lot* easier if you print out the completed
                     // buffer for debugging.
-                    buffer.append(line + "\n");
+                    buffer.append(line).append("\n");
                 }
 
                 if (buffer.length() == 0) {
@@ -251,11 +251,11 @@ public class DetailFragment extends Fragment {
 
         private Uri getTrailersUri(String id) {
             // https://api.themoviedb.org/3/movie/550/videos?api_key=xxxx
-            final String FORECAST_BASE_URL =
+            final String BASE_URL =
                     "https://api.themoviedb.org/3/movie/"+ id +"/videos?";
             final String API_KEY_PARAM = "api_key";
 
-            return Uri.parse(FORECAST_BASE_URL).buildUpon()
+            return Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
                     .build();
         }
