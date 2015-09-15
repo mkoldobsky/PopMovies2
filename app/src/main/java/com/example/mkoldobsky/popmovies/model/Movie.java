@@ -13,6 +13,7 @@ public class Movie implements Parcelable{
     private Double voteAverage;
     private String releaseDate;
     private ArrayList<Trailer> trailers = new ArrayList<>();
+    private ArrayList<Review> reviews = new ArrayList<>();
 
     public Movie(String id, String title, String posterPath, String plot, Double vote, String date){
         this.id = id;
@@ -106,7 +107,19 @@ public class Movie implements Parcelable{
         return id;
     }
 
-    public void addTrailers(ArrayList<Trailer> movieTrailersFromJson) {
-        this.trailers.addAll(movieTrailersFromJson);
+    public void addTrailers(ArrayList<Trailer> trailers) {
+        this.trailers.addAll(trailers);
+    }
+
+    public void setReviews(ArrayList<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public void addReviews(ArrayList<Review> reviews) {
+        this.reviews.addAll(reviews);
+    }
+
+    public ArrayList<Review> getReviews() {
+        return reviews;
     }
 }
