@@ -1,8 +1,10 @@
 package com.example.mkoldobsky.popmovies;
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -46,6 +48,7 @@ public class DetailFragment extends Fragment {
     private String mErrorMessage;
     TrailerAdapter mTrailerAdapter;
     ReviewAdapter mReviewAdapter;
+    FloatingActionButton mFab;
 
     public DetailFragment() {
     }
@@ -54,6 +57,19 @@ public class DetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        mFab = (FloatingActionButton) mRootView.findViewById(R.id.favorite_fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMovie.isFavorite()){
+                    mFab.setImageResource(R.drawable.ic_add_favorite);
+                    mMovie.setFavorite(false);
+                } else {
+                    mFab.setImageResource(R.drawable.ic_remove_favorite);
+                    mMovie.setFavorite(true);
+                }
+            }
+        });
         return mRootView;
     }
 

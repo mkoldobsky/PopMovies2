@@ -14,6 +14,7 @@ public class Movie implements Parcelable{
     private String releaseDate;
     private ArrayList<Trailer> trailers = new ArrayList<>();
     private ArrayList<Review> reviews = new ArrayList<>();
+    private boolean favorite;
 
     public Movie(String id, String title, String posterPath, String plot, Double vote, String date){
         this.id = id;
@@ -121,5 +122,13 @@ public class Movie implements Parcelable{
 
     public ArrayList<Review> getReviews() {
         return reviews;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 }
