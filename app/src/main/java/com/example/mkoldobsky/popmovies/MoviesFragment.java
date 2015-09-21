@@ -102,7 +102,8 @@ public class MoviesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateMovies(Utility.getPrefSortOrder(getActivity()));
+
+        //updateMovies(Utility.getPrefSortOrder(getActivity()));
     }
 
     @Override
