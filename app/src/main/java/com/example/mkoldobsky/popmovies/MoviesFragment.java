@@ -34,6 +34,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import service.MovieService;
+
 /**
  * A placeholder fragment containing a simple view.
  */
@@ -44,6 +46,8 @@ public class MoviesFragment extends Fragment {
     ArrayList<Movie> mMovies;
     boolean mError;
     String mErrorMessage;
+    MovieService mMovieService;
+
 
     public MoviesFragment() {
     }
@@ -64,6 +68,8 @@ public class MoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movies, container, false);
 
+        mMovieService = new MovieService(getActivity());
+
         String sortOrder = Utility.getPrefSortOrder(getActivity());
 
         if (savedInstanceState != null)
@@ -71,7 +77,7 @@ public class MoviesFragment extends Fragment {
             mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
-            updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
+            updateMovies(sortOrder);
         }
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
@@ -111,6 +117,16 @@ public class MoviesFragment extends Fragment {
 
 
     private void updateMovies(String sortOrder) {
+        if (sortOrder == Constants.FAVORITES) {
+            ArrayList<Movie> favorites = mMovieService.getMovies();
+            mMovies.clear();
+            if (favorites != null && favorites.size() > 0) {
+                mMovieAdapter.updateData(favorites);
+            }
+
+
+            return;
+        }
         if (Utility.isNetworkAvailable(getActivity())) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
@@ -137,6 +153,13 @@ public class MoviesFragment extends Fragment {
             updateMovies(Constants.HIGHEST_RATED_SORT_ORDER);
             Utility.setPrefSortOrder(getActivity(), Constants.HIGHEST_RATED_SORT_ORDER);
             setActivityTitle(getContext().getString(R.string.action_highest_rated));
+            return true;
+        }
+
+        if (id == R.id.action_favorites) {
+            updateMovies(Constants.FAVORITES);
+            Utility.setPrefSortOrder(getActivity(), Constants.FAVORITES);
+            setActivityTitle(getContext().getString(R.string.action_favorites));
             return true;
         }
 
@@ -173,9 +196,6 @@ public class MoviesFragment extends Fragment {
             try {
                 JSONObject moviesJson = new JSONObject(movieJsonString);
                 JSONArray movieArray = moviesJson.getJSONArray(MDB_RESULTS);
-
-
-
 
                 for(int i = 0; i < movieArray.length(); i++) {
                     JSONObject movieJson = movieArray.getJSONObject(i);

@@ -39,6 +39,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import service.MovieService;
+
 public class DetailFragment extends Fragment {
 
     private View mRootView;
@@ -49,6 +51,7 @@ public class DetailFragment extends Fragment {
     TrailerAdapter mTrailerAdapter;
     ReviewAdapter mReviewAdapter;
     FloatingActionButton mFab;
+    MovieService mMovieService;
 
     public DetailFragment() {
     }
@@ -56,6 +59,7 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mMovieService = new MovieService(getActivity());
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mFab = (FloatingActionButton) mRootView.findViewById(R.id.favorite_fab);
         mFab.setOnClickListener(new View.OnClickListener() {
@@ -64,9 +68,11 @@ public class DetailFragment extends Fragment {
                 if (mMovie.isFavorite()){
                     mFab.setImageResource(R.drawable.ic_add_favorite);
                     mMovie.setFavorite(false);
+                    mMovieService.deleteMovie(mMovie);
                 } else {
                     mFab.setImageResource(R.drawable.ic_remove_favorite);
                     mMovie.setFavorite(true);
+                    mMovieService.addMovie(mMovie);
                 }
             }
         });

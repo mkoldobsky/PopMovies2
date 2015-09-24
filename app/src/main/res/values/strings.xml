@@ -2,6 +2,9 @@
     <string name="app_name">Pop Movies</string>
     <string name="main_title">"Pop Movies "</string>
 
+    <string name="content_authority">com.example.mkoldobsky.popmovies</string>
+
+
     <string name="action_sort_order">Sort Order</string>
     <string name="action_highest_rated">Highest Rated</string>
     <string name="action_most_popular">Most Popular</string>
@@ -22,5 +25,6 @@
     <string name="movie_key">movie</string>
     <string name="movie_trailers">Trailers</string>
     <string name="movie_reviews">Reviews</string>
+    <string name="action_favorites">Favorites</string>
 
 </resources>
