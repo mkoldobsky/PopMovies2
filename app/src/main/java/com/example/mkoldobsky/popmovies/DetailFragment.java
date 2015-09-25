@@ -1,6 +1,5 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -43,6 +42,8 @@ import service.MovieService;
 
 public class DetailFragment extends Fragment {
 
+    private final String LOG_TAG = DetailFragment.class.getSimpleName();
+
     private View mRootView;
     private Movie mMovie;
     ViewHolder mViewHolder;
@@ -65,7 +66,7 @@ public class DetailFragment extends Fragment {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mMovie.isFavorite()){
+                if (mMovie.isFavorite()) {
                     mFab.setImageResource(R.drawable.ic_add_favorite);
                     mMovie.setFavorite(false);
                     mMovieService.deleteMovie(mMovie);
@@ -81,9 +82,11 @@ public class DetailFragment extends Fragment {
 
     public void setMovie(Movie movie){
         this.mMovie = movie;
+        Log.d(LOG_TAG, "setMovie favorite " + movie.getFavorite());
 
         createViewHolder();
 
+        initializeFavoriteIcon();
         initializeTrailers();
         initializeReviews();
 
@@ -96,6 +99,15 @@ public class DetailFragment extends Fragment {
         updateDetails();
         loadImages();
     }
+
+    private void initializeFavoriteIcon() {
+        if (mMovie.isFavorite()) {
+            mFab.setImageResource(R.drawable.ic_remove_favorite);
+        } else {
+            mFab.setImageResource(R.drawable.ic_add_favorite);
+        }
+
+        }
 
     private void initializeTrailers() {
         mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);

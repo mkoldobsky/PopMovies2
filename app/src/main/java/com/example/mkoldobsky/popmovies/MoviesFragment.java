@@ -41,6 +41,8 @@ import service.MovieService;
  */
 public class MoviesFragment extends Fragment {
 
+    private final String LOG_TAG = MoviesFragment.class.getSimpleName();
+
     private static final String MOVIES_KEY = "movies";
     MovieAdapter mMovieAdapter;
     ArrayList<Movie> mMovies;
@@ -94,6 +96,8 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie selectedMovie = mMovies.get(position);
+                selectedMovie.setFavorite(mMovieService.getFavorite(selectedMovie));
+                Log.d(LOG_TAG, "favorite " + selectedMovie.getFavorite());
                 intent.putExtra(getActivity().getString(R.string.movie_key), selectedMovie);
                 getActivity().startActivity(intent);
             }
@@ -120,7 +124,7 @@ public class MoviesFragment extends Fragment {
         if (sortOrder == Constants.FAVORITES) {
             ArrayList<Movie> favorites = mMovieService.getMovies();
             mMovies.clear();
-            if (favorites != null && favorites.size() > 0) {
+            if (favorites != null) {
                 mMovieAdapter.updateData(favorites);
             }
 

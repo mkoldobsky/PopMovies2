@@ -32,6 +32,7 @@ public class Movie implements Parcelable{
         plotSynopsis = in.readString();
         voteAverage = in.readDouble();
         releaseDate = in.readString();
+        favorite = in.readByte() != 0;
     }
 
     public String getTitle() {
@@ -84,6 +85,7 @@ public class Movie implements Parcelable{
         dest.writeString(plotSynopsis);
         dest.writeDouble(voteAverage);
         dest.writeString(releaseDate);
+        dest.writeByte((byte) (favorite ? 1 : 0));
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
@@ -130,5 +132,9 @@ public class Movie implements Parcelable{
 
     public void setFavorite(boolean favorite) {
         this.favorite = favorite;
+    }
+
+    public boolean getFavorite() {
+        return favorite;
     }
 }

@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import com.example.mkoldobsky.popmovies.data.MovieContract;
 import com.example.mkoldobsky.popmovies.model.Movie;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
  * Created by mkoldobsky on 24/9/15.
  */
 public class MovieService {
+
+    private final String LOG_TAG = MovieService.class.getSimpleName();
 
     private static final int INDEX_COLUMN_ID = 0;
     private static final int INDEX_COLUMN_TITLE = 1;
@@ -45,6 +48,7 @@ public class MovieService {
         } else {
             ContentValues movieValues = new ContentValues();
 
+            movieValues.put(MovieContract.MovieEntry._ID, movie.getId());
             movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, movie.getTitle());
             movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, movie.getPosterPath());
             movieValues.put(MovieContract.MovieEntry.COLUMN_PLOT, movie.getPlotSynopsis());
@@ -63,7 +67,6 @@ public class MovieService {
 
         movieCursor.close();
 
-
         return movieId;
     }
 
@@ -73,19 +76,20 @@ public class MovieService {
         Cursor movieCursor = mContext.getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 new String[]{MovieContract.MovieEntry._ID},
-                " = ?",
+                MovieContract.MovieEntry._ID + " = ?",
                 new String[]{movie.getId()},
                 null);
 
         if (movieCursor.moveToFirst()) {
             rowsDeleted = mContext.getContentResolver().delete(
                     MovieContract.MovieEntry.CONTENT_URI,
-                    MovieContract.MovieEntry._ID + " = ?",
+                    MovieContract.MovieEntry._ID.toString() + " = ?",
                     new String[]{movie.getId()}
 
             );
 
         }
+        movieCursor.close();
         return rowsDeleted;
     }
 
@@ -113,5 +117,20 @@ public class MovieService {
         }
         movieCursor.close();
         return result;
+    }
+
+    public boolean getFavorite(Movie movie){
+        Cursor movieCursor = mContext.getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                new String[]{MovieContract.MovieEntry._ID},
+                MovieContract.MovieEntry._ID + " = ?",
+                new String[]{movie.getId()},
+                null, null
+        );
+        boolean result = movieCursor.moveToFirst();
+        Log.d(LOG_TAG, "getFavorite " + result);
+        movieCursor.close();
+        return result;
+
     }
 }
