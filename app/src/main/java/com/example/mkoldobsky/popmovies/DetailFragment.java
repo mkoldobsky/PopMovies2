@@ -1,6 +1,5 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -39,7 +38,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import service.MovieService;
+
 public class DetailFragment extends Fragment {
+
+    private final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private View mRootView;
     private Movie mMovie;
@@ -49,6 +52,7 @@ public class DetailFragment extends Fragment {
     TrailerAdapter mTrailerAdapter;
     ReviewAdapter mReviewAdapter;
     FloatingActionButton mFab;
+    MovieService mMovieService;
 
     public DetailFragment() {
     }
@@ -56,17 +60,20 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mMovieService = new MovieService(getActivity());
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mFab = (FloatingActionButton) mRootView.findViewById(R.id.favorite_fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mMovie.isFavorite()){
+                if (mMovie.isFavorite()) {
                     mFab.setImageResource(R.drawable.ic_add_favorite);
                     mMovie.setFavorite(false);
+                    mMovieService.deleteMovie(mMovie);
                 } else {
                     mFab.setImageResource(R.drawable.ic_remove_favorite);
                     mMovie.setFavorite(true);
+                    mMovieService.addMovie(mMovie);
                 }
             }
         });
@@ -75,9 +82,11 @@ public class DetailFragment extends Fragment {
 
     public void setMovie(Movie movie){
         this.mMovie = movie;
+        Log.d(LOG_TAG, "setMovie favorite " + movie.getFavorite());
 
         createViewHolder();
 
+        initializeFavoriteIcon();
         initializeTrailers();
         initializeReviews();
 
@@ -90,6 +99,15 @@ public class DetailFragment extends Fragment {
         updateDetails();
         loadImages();
     }
+
+    private void initializeFavoriteIcon() {
+        if (mMovie.isFavorite()) {
+            mFab.setImageResource(R.drawable.ic_remove_favorite);
+        } else {
+            mFab.setImageResource(R.drawable.ic_add_favorite);
+        }
+
+        }
 
     private void initializeTrailers() {
         mTrailerAdapter = new TrailerAdapter(getActivity(), mMovie.getTrailers(), R.layout.list_item_trailer);

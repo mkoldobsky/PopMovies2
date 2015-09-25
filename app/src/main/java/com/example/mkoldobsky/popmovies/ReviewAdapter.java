@@ -1,19 +1,12 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mkoldobsky.popmovies.model.Review;
-import com.example.mkoldobsky.popmovies.model.Trailer;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 

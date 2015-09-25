@@ -1,9 +1,6 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -37,16 +34,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import service.MovieService;
+
 /**
  * A placeholder fragment containing a simple view.
  */
 public class MoviesFragment extends Fragment {
+
+    private final String LOG_TAG = MoviesFragment.class.getSimpleName();
 
     private static final String MOVIES_KEY = "movies";
     MovieAdapter mMovieAdapter;
     ArrayList<Movie> mMovies;
     boolean mError;
     String mErrorMessage;
+    MovieService mMovieService;
+
 
     public MoviesFragment() {
     }
@@ -67,6 +70,8 @@ public class MoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movies, container, false);
 
+        mMovieService = new MovieService(getActivity());
+
         String sortOrder = Utility.getPrefSortOrder(getActivity());
 
         if (savedInstanceState != null)
@@ -74,7 +79,7 @@ public class MoviesFragment extends Fragment {
             mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
-            updateMovies(sortOrder != null ? sortOrder : Constants.MOST_POPULAR_SORT_ORDER);
+            updateMovies(sortOrder);
         }
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
@@ -91,6 +96,8 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie selectedMovie = mMovies.get(position);
+                selectedMovie.setFavorite(mMovieService.getFavorite(selectedMovie));
+                Log.d(LOG_TAG, "favorite " + selectedMovie.getFavorite());
                 intent.putExtra(getActivity().getString(R.string.movie_key), selectedMovie);
                 getActivity().startActivity(intent);
             }
@@ -102,7 +109,8 @@ public class MoviesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateMovies(Utility.getPrefSortOrder(getActivity()));
+
+        //updateMovies(Utility.getPrefSortOrder(getActivity()));
     }
 
     @Override
@@ -113,6 +121,16 @@ public class MoviesFragment extends Fragment {
 
 
     private void updateMovies(String sortOrder) {
+        if (sortOrder == Constants.FAVORITES) {
+            ArrayList<Movie> favorites = mMovieService.getMovies();
+            mMovies.clear();
+            if (favorites != null) {
+                mMovieAdapter.updateData(favorites);
+            }
+
+
+            return;
+        }
         if (Utility.isNetworkAvailable(getActivity())) {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
@@ -139,6 +157,13 @@ public class MoviesFragment extends Fragment {
             updateMovies(Constants.HIGHEST_RATED_SORT_ORDER);
             Utility.setPrefSortOrder(getActivity(), Constants.HIGHEST_RATED_SORT_ORDER);
             setActivityTitle(getContext().getString(R.string.action_highest_rated));
+            return true;
+        }
+
+        if (id == R.id.action_favorites) {
+            updateMovies(Constants.FAVORITES);
+            Utility.setPrefSortOrder(getActivity(), Constants.FAVORITES);
+            setActivityTitle(getContext().getString(R.string.action_favorites));
             return true;
         }
 
@@ -175,9 +200,6 @@ public class MoviesFragment extends Fragment {
             try {
                 JSONObject moviesJson = new JSONObject(movieJsonString);
                 JSONArray movieArray = moviesJson.getJSONArray(MDB_RESULTS);
-
-
-
 
                 for(int i = 0; i < movieArray.length(); i++) {
                     JSONObject movieJson = movieArray.getJSONObject(i);
