@@ -26,5 +26,6 @@
     <string name="movie_trailers">Trailers</string>
     <string name="movie_reviews">Reviews</string>
     <string name="action_favorites">Favorites</string>
+    <string name="action_share">Share</string>
 
 </resources>
