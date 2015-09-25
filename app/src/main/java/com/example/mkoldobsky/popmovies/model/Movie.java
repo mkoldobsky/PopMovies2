@@ -137,4 +137,8 @@ public class Movie implements Parcelable{
     public boolean getFavorite() {
         return favorite;
     }
+
+    public int trailersSize() {
+        return trailers.size();
+    }
 }
