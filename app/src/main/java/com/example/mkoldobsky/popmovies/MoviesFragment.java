@@ -89,6 +89,8 @@ public class MoviesFragment extends Fragment {
                 R.string.action_most_popular : R.string.action_highest_rated));
 
         GridView moviesGridView = (GridView)rootView.findViewById(R.id.moviesGridView);
+        View empty = rootView.findViewById(R.id.empty);
+        moviesGridView.setEmptyView(empty);
         moviesGridView.setAdapter(mMovieAdapter);
         moviesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -110,7 +112,7 @@ public class MoviesFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        //updateMovies(Utility.getPrefSortOrder(getActivity()));
+        updateMovies(Utility.getPrefSortOrder(getActivity()));
     }
 
     @Override
