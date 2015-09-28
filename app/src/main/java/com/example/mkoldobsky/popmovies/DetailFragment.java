@@ -1,15 +1,21 @@
 package com.example.mkoldobsky.popmovies;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -42,6 +48,7 @@ import service.MovieService;
 
 public class DetailFragment extends Fragment {
 
+    private static final String MOVIE_SHARE_HASHTAG = " #PopMovies";
     private final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private View mRootView;
@@ -53,8 +60,15 @@ public class DetailFragment extends Fragment {
     ReviewAdapter mReviewAdapter;
     FloatingActionButton mFab;
     MovieService mMovieService;
+    ShareActionProvider mShareActionProvider;
 
     public DetailFragment() {
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -77,12 +91,28 @@ public class DetailFragment extends Fragment {
                 }
             }
         });
+
         return mRootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_detail, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
+        super.onCreateOptionsMenu(menu,inflater);
     }
 
     public void setMovie(Movie movie){
         this.mMovie = movie;
-        Log.d(LOG_TAG, "setMovie favorite " + movie.getFavorite());
 
         createViewHolder();
 
@@ -412,12 +442,7 @@ public class DetailFragment extends Fragment {
         }
     }
 
-<<<<<<< Updated upstream
-=======
     private Intent createShareTrailerIntent() {
-        if (mMovie == null){
-            return null;
-        }
         Trailer firstTrailer = mMovie.trailersSize() > 0 ?mMovie.getTrailers().get(0) : null;
         String textToShare = firstTrailer != null ? getTrailerLink(firstTrailer) : "ups!(no trailer)";
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -431,7 +456,6 @@ public class DetailFragment extends Fragment {
         return Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey()).toString();
     }
 
->>>>>>> Stashed changes
     private void showErrorMessage(String errorMessage) {
 
         int duration = Toast.LENGTH_SHORT;
