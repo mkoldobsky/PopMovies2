@@ -412,6 +412,26 @@ public class DetailFragment extends Fragment {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    private Intent createShareTrailerIntent() {
+        if (mMovie == null){
+            return null;
+        }
+        Trailer firstTrailer = mMovie.trailersSize() > 0 ?mMovie.getTrailers().get(0) : null;
+        String textToShare = firstTrailer != null ? getTrailerLink(firstTrailer) : "ups!(no trailer)";
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Watch the " + mMovie.getTitle() + "'s trailer " + textToShare + MOVIE_SHARE_HASHTAG);
+        return shareIntent;
+    }
+
+    private String getTrailerLink(Trailer trailer){
+        return Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey()).toString();
+    }
+
+>>>>>>> Stashed changes
     private void showErrorMessage(String errorMessage) {
 
         int duration = Toast.LENGTH_SHORT;
