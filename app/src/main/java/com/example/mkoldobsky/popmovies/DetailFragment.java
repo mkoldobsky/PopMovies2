@@ -105,7 +105,7 @@ public class DetailFragment extends Fragment {
         // Get the provider and hold onto it to set/change the share intent.
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-        if (mShareActionProvider != null) {
+        if (mShareActionProvider != null && mMovie != null) {
             mShareActionProvider.setShareIntent(createShareTrailerIntent());
         }
         super.onCreateOptionsMenu(menu, inflater);
@@ -128,6 +128,10 @@ public class DetailFragment extends Fragment {
 
         updateDetails();
         loadImages();
+        if (mShareActionProvider != null && mMovie != null) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
+
     }
 
     private void initializeFavoriteIcon() {

@@ -323,13 +323,13 @@ public class MoviesFragment extends Fragment {
         private Uri getUri(String sortOrder) {
             // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
             //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
-            final String FORECAST_BASE_URL =
+            final String MOVIE_BASE_URL =
                     "https://api.themoviedb.org/3/discover/movie?";
             final String API_KEY_PARAM = "api_key";
             final String SORT_BY_PARAM = "sort_by";
             final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
 
-            return Uri.parse(FORECAST_BASE_URL).buildUpon()
+            return Uri.parse(MOVIE_BASE_URL).buildUpon()
                     .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
                     .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
                     .build();
