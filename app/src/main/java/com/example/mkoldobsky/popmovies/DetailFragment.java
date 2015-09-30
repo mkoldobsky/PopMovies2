@@ -108,7 +108,7 @@ public class DetailFragment extends Fragment {
         if (mShareActionProvider != null) {
             mShareActionProvider.setShareIntent(createShareTrailerIntent());
         }
-        super.onCreateOptionsMenu(menu,inflater);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     public void setMovie(Movie movie){
@@ -287,10 +287,6 @@ public class DetailFragment extends Fragment {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
-
-
-            String jsonString;
-
 
             if (getTrailers(urlConnection, reader)) return null;
             if (getReviews(urlConnection, reader)) return null;

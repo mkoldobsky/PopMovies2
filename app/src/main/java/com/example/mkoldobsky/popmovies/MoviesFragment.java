@@ -1,6 +1,6 @@
 package com.example.mkoldobsky.popmovies;
 
-import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -49,9 +49,30 @@ public class MoviesFragment extends Fragment {
     boolean mError;
     String mErrorMessage;
     MovieService mMovieService;
+    String mSortOrder;
+
+    OnMovieSelectedListener mCallback;
+
+    public interface OnMovieSelectedListener{
+        // Container Activity must implement this interface
+        public void onMovieSelected(Movie movie);
+    }
 
 
     public MoviesFragment() {
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnMovieSelectedListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnMovieSelectedListener");
+        }
     }
 
     @Override
@@ -72,22 +93,21 @@ public class MoviesFragment extends Fragment {
 
         mMovieService = new MovieService(getActivity());
 
-        String sortOrder = Utility.getPrefSortOrder(getActivity());
+        mSortOrder = Utility.getPrefSortOrder(getActivity());
 
         if (savedInstanceState != null)
         {
             mMovies = (ArrayList<Movie>)savedInstanceState.get(MOVIES_KEY);
         } else {
             mMovies = new ArrayList<>();
-            updateMovies(sortOrder);
+            updateMovies(mSortOrder);
         }
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
 
-        Utility.setPrefSortOrder(getActivity(), sortOrder);
-        setActivityTitle(getContext().getString(sortOrder == Constants.MOST_POPULAR_SORT_ORDER ?
-                R.string.action_most_popular : R.string.action_highest_rated));
+        Utility.setPrefSortOrder(getActivity(), mSortOrder);
 
+        setActivityTitle(getTitle(mSortOrder));
         GridView moviesGridView = (GridView)rootView.findViewById(R.id.moviesGridView);
         View empty = rootView.findViewById(R.id.empty);
         moviesGridView.setEmptyView(empty);
@@ -96,23 +116,31 @@ public class MoviesFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie selectedMovie = mMovies.get(position);
                 selectedMovie.setFavorite(mMovieService.getFavorite(selectedMovie));
                 Log.d(LOG_TAG, "favorite " + selectedMovie.getFavorite());
-                intent.putExtra(getActivity().getString(R.string.movie_key), selectedMovie);
-                getActivity().startActivity(intent);
+
+                mCallback.onMovieSelected(selectedMovie);
+
             }
         });
 
         return rootView;
     }
 
+    private String getTitle(String sortOrder) {
+        return sortOrder == Constants.MOST_POPULAR_SORT_ORDER ? getActivity().getString(R.string.action_most_popular) :
+                sortOrder == Constants.HIGHEST_RATED_SORT_ORDER ? getActivity().getString(R.string.action_highest_rated) :
+                        getActivity().getString(R.string.action_favorites);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
 
-        updateMovies(Utility.getPrefSortOrder(getActivity()));
+        mSortOrder = Utility.getPrefSortOrder(getActivity());
+        updateMovies(mSortOrder);
+        setActivityTitle(getTitle(mSortOrder));
     }
 
     @Override
@@ -172,8 +200,8 @@ public class MoviesFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setActivityTitle(String sortOrder) {
-        ((MainActivity)getActivity()).setActivityTitle(sortOrder);
+    private void setActivityTitle(String title) {
+        ((MainActivity)getActivity()).setActivityTitle(title);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, ArrayList<Movie>> {
