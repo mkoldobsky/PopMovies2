@@ -7,9 +7,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.mkoldobsky.popmovies.common.Constants;
 import com.example.mkoldobsky.popmovies.model.Movie;
 
-public class MainActivity extends AppCompatActivity implements MoviesFragment.OnMovieSelectedListener {
+public class MainActivity extends AppCompatActivity implements MoviesFragment.OnMovieSelectedListener, DetailFragment.OnFavoriteChangeListener{
 
     private static final String DETAILFRAGMENT_TAG = "DTAG";
     private boolean mTwoPane;
@@ -65,5 +66,12 @@ public class MainActivity extends AppCompatActivity implements MoviesFragment.On
 
 
     }
+
+    public void onMovieFavoriteChange() {
+        MoviesFragment moviesFragment = (MoviesFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_movies);
+        moviesFragment.updateFavorites();
+    }
+
+
 
 }

@@ -53,6 +53,7 @@ public class MoviesFragment extends Fragment {
 
     OnMovieSelectedListener mCallback;
 
+
     public interface OnMovieSelectedListener{
         // Container Activity must implement this interface
         public void onMovieSelected(Movie movie);
@@ -93,7 +94,7 @@ public class MoviesFragment extends Fragment {
 
         mMovieService = new MovieService(getActivity());
 
-        mSortOrder = Utility.getPrefSortOrder(getActivity());
+        setSortOrder();
 
         if (savedInstanceState != null)
         {
@@ -105,7 +106,6 @@ public class MoviesFragment extends Fragment {
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
 
-        Utility.setPrefSortOrder(getActivity(), mSortOrder);
 
         setActivityTitle(getTitle(mSortOrder));
         GridView moviesGridView = (GridView)rootView.findViewById(R.id.moviesGridView);
@@ -128,9 +128,18 @@ public class MoviesFragment extends Fragment {
         return rootView;
     }
 
+    private void setSortOrder() {
+        mSortOrder = Utility.getPrefSortOrder(getActivity());
+
+        if (mSortOrder == null){
+            mSortOrder = Constants.MOST_POPULAR_SORT_ORDER;
+            Utility.setPrefSortOrder(getActivity(), mSortOrder);
+        }
+    }
+
     private String getTitle(String sortOrder) {
-        return sortOrder == Constants.MOST_POPULAR_SORT_ORDER ? getActivity().getString(R.string.action_most_popular) :
-                sortOrder == Constants.HIGHEST_RATED_SORT_ORDER ? getActivity().getString(R.string.action_highest_rated) :
+        return sortOrder.equals(Constants.MOST_POPULAR_SORT_ORDER) ? getActivity().getString(R.string.action_most_popular) :
+                sortOrder.equals(Constants.HIGHEST_RATED_SORT_ORDER) ? getActivity().getString(R.string.action_highest_rated) :
                         getActivity().getString(R.string.action_favorites);
     }
 
@@ -138,7 +147,7 @@ public class MoviesFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        mSortOrder = Utility.getPrefSortOrder(getActivity());
+        setSortOrder();
         updateMovies(mSortOrder);
         setActivityTitle(getTitle(mSortOrder));
     }
@@ -149,12 +158,20 @@ public class MoviesFragment extends Fragment {
         outState.putParcelableArrayList(MOVIES_KEY, (ArrayList<? extends Parcelable>) mMovies);
     }
 
+    public void updateFavorites() {
+        setSortOrder();
+        if (mSortOrder.equals(Constants.FAVORITES)){
+            updateMovies(mSortOrder);
+        }
+
+    }
+
 
     private void updateMovies(String sortOrder) {
-        if (sortOrder == Constants.FAVORITES) {
+        if (sortOrder.equals(Constants.FAVORITES)) {
             ArrayList<Movie> favorites = mMovieService.getMovies();
             mMovies.clear();
-            if (favorites != null) {
+            if (favorites != null && mMovieAdapter != null) {
                 mMovieAdapter.updateData(favorites);
             }
 

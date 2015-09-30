@@ -1,5 +1,6 @@
 package com.example.mkoldobsky.popmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -62,8 +63,29 @@ public class DetailFragment extends Fragment {
     MovieService mMovieService;
     ShareActionProvider mShareActionProvider;
 
+    OnFavoriteChangeListener mCallback;
+
+
     public DetailFragment() {
     }
+
+    public interface OnFavoriteChangeListener{
+        public void onMovieFavoriteChange();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnFavoriteChangeListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnFavoriteChangeListener");
+        }
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,10 +106,12 @@ public class DetailFragment extends Fragment {
                     mFab.setImageResource(R.drawable.ic_add_favorite);
                     mMovie.setFavorite(false);
                     mMovieService.deleteMovie(mMovie);
+                    mCallback.onMovieFavoriteChange();
                 } else {
                     mFab.setImageResource(R.drawable.ic_remove_favorite);
                     mMovie.setFavorite(true);
                     mMovieService.addMovie(mMovie);
+                    mCallback.onMovieFavoriteChange();
                 }
             }
         });
