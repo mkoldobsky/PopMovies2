@@ -141,4 +141,12 @@ public class Movie implements Parcelable{
     public int trailersSize() {
         return trailers.size();
     }
+
+    public void addTrailer(Trailer trailer) {
+        this.trailers.add(trailer);
+    }
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+    }
 }

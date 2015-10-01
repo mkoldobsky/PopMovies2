@@ -4,10 +4,10 @@ package com.example.mkoldobsky.popmovies.model;
  * Created by mkoldobsky on 15/9/15.
  */
 public class Review {
-    private final String id;
-    private final String author;
-    private final String content;
-    private final String url;
+    private String id;
+    private String author;
+    private String content;
+    private String url;
 
     public Review(String id, String author, String content, String url) {
 
@@ -15,6 +15,12 @@ public class Review {
         this.author = author;
         this.content = content;
         this.url = url;
+    }
+
+    public Review(String author, String content){
+
+        this.author = author;
+        this.content = content;
     }
 
     public String getAuthor() {

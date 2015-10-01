@@ -11,6 +11,8 @@ import android.provider.BaseColumns;
 public class MovieContract {
     public static final String CONTENT_AUTHORITY = "com.example.mkoldobsky.popmovies";
     public static final String PATH_MOVIE = "movie";
+    public static final String PATH_TRAILER = "trailer";
+    public static final String PATH_REVIEW = "review";
 
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
 
@@ -20,6 +22,11 @@ public class MovieContract {
         public static final String COLUMN_AUTHOR = "author";
         public static final String COLUMN_CONTENT = "content";
         public static final String COLUMN_MOVIE_ID = "movie_id";
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
+        public static Uri buildReviewUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
     }
 
     public static class TrailerEntry implements BaseColumns{
@@ -27,6 +34,11 @@ public class MovieContract {
         public static final String COLUMN_KEY = "key";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_MOVIE_ID = "movie_id";
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
+        public static Uri buildTrailerUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
     }
 
     public static class MovieEntry implements BaseColumns{

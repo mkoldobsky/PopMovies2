@@ -15,6 +15,11 @@ public class Trailer {
         this.site = site;
         this.key = key;
     }
+    public Trailer(String key, String name){
+
+        this.key = key;
+        this.name = name;
+    }
 
     public String getName() {
         return name;

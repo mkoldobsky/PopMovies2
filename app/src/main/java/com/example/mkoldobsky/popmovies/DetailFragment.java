@@ -195,13 +195,13 @@ public class DetailFragment extends Fragment {
     }
 
     private void setMovieAdditionalInfo() {
-        if (Utility.isNetworkAvailable(getActivity())) {
-            FetchMovieInfoTask movieInfoTask = new FetchMovieInfoTask();
-            movieInfoTask.execute("trailers");
-        } else {
-            showErrorMessage(this.getString(R.string.network_error));
+        if (!Utility.isNetworkAvailable(getActivity())) {
+            return;
         }
-
+        if (!mMovie.isFavorite()) {
+            FetchMovieInfoTask movieInfoTask = new FetchMovieInfoTask();
+            movieInfoTask.execute();
+        }
     }
 
     private void createViewHolder() {
@@ -305,10 +305,6 @@ public class DetailFragment extends Fragment {
 
         @Override
         protected Void doInBackground(String... params) {
-
-            if (params.length == 0) {
-                return null;
-            }
 
             mError = false;
             mErrorMessage = "";

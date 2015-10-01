@@ -9,6 +9,8 @@ import android.util.Log;
 
 import com.example.mkoldobsky.popmovies.data.MovieContract;
 import com.example.mkoldobsky.popmovies.model.Movie;
+import com.example.mkoldobsky.popmovies.model.Review;
+import com.example.mkoldobsky.popmovies.model.Trailer;
 
 import java.util.ArrayList;
 
@@ -25,6 +27,14 @@ public class MovieService {
     private static final int INDEX_COLUMN_PLOT = 3;
     private static final int INDEX_COLUMN_VOTE = 4;
     private static final int INDEX_COLUMN_DATE = 5;
+
+    private static final int INDEX_COLUMN_KEY = 0;
+    private static final int INDEX_COLUMN_NAME = 1;
+
+    private static final int INDEX_COLUMN_AUTHOR = 0;
+    private static final int INDEX_COLUMN_CONTENT = 1;
+
+
     private Context mContext;
 
     public MovieService(Context context){
@@ -61,8 +71,30 @@ public class MovieService {
                     movieValues
             );
 
-            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            // The resulting URI contains the ID for the row.  Extract the id from the Uri.
             movieId = ContentUris.parseId(insertedUri);
+            
+            for (Trailer trailer:movie.getTrailers()) {
+                ContentValues trailerValues = new ContentValues();
+                trailerValues.put(MovieContract.TrailerEntry.COLUMN_MOVIE_ID, movieId);
+                trailerValues.put(MovieContract.TrailerEntry.COLUMN_KEY, trailer.getKey());
+                trailerValues.put(MovieContract.TrailerEntry.COLUMN_NAME, trailer.getName());
+                Uri trailerInsertedUri = mContext.getContentResolver().insert(
+                        MovieContract.TrailerEntry.CONTENT_URI,
+                        trailerValues
+                );
+            }
+            for (Review review:movie.getReviews()) {
+                ContentValues reviewValues = new ContentValues();
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_MOVIE_ID, movieId);
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_AUTHOR, review.getAuthor());
+                reviewValues.put(MovieContract.ReviewEntry.COLUMN_CONTENT, review.getContent());
+                Uri reviewInsertedUri = mContext.getContentResolver().insert(
+                        MovieContract.ReviewEntry.CONTENT_URI,
+                        reviewValues
+                );
+            }
+
         }
 
         movieCursor.close();
@@ -114,7 +146,36 @@ public class MovieService {
             Movie movie = new Movie(id, title, path, plot, vote, date);
             result.add(movie);
 
+            Cursor trailerCursor = mContext.getContentResolver().query(
+                    MovieContract.TrailerEntry.CONTENT_URI,
+                    new String[]{MovieContract.TrailerEntry.COLUMN_NAME, MovieContract.TrailerEntry.COLUMN_KEY},
+                    MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " = ?",
+                    new String[]{movie.getId()}, null
+            );
+
+            while (trailerCursor.moveToNext()) {
+                String key = trailerCursor.getString(INDEX_COLUMN_KEY);
+                String name = trailerCursor.getString(INDEX_COLUMN_NAME);
+                movie.addTrailer(new Trailer(key, name));
+            }
+            trailerCursor.close();
+
+            Cursor reviewCursor = mContext.getContentResolver().query(
+                    MovieContract.ReviewEntry.CONTENT_URI,
+                    new String[]{MovieContract.ReviewEntry.COLUMN_AUTHOR, MovieContract.ReviewEntry.COLUMN_CONTENT},
+                    MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " = ?",
+                    new String[]{movie.getId()}, null
+            );
+
+            while (reviewCursor.moveToNext()) {
+                String author = reviewCursor.getString(INDEX_COLUMN_AUTHOR);
+                String content = reviewCursor.getString(INDEX_COLUMN_CONTENT);
+                movie.addReview(new Review(author, content));
+            }
+            reviewCursor.close();
+
         }
+
         movieCursor.close();
         return result;
     }
