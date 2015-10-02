@@ -33,6 +33,8 @@ public class Movie implements Parcelable{
         voteAverage = in.readDouble();
         releaseDate = in.readString();
         favorite = in.readByte() != 0;
+        in.readTypedList(trailers, Trailer.CREATOR);
+        in.readTypedList(reviews, Review.CREATOR);
     }
 
     public String getTitle() {
@@ -86,6 +88,8 @@ public class Movie implements Parcelable{
         dest.writeDouble(voteAverage);
         dest.writeString(releaseDate);
         dest.writeByte((byte) (favorite ? 1 : 0));
+        dest.writeTypedList(this.trailers);
+        dest.writeTypedList(this.reviews);
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

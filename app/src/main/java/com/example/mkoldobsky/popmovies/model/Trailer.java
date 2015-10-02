@@ -1,9 +1,12 @@
 package com.example.mkoldobsky.popmovies.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by mkoldobsky on 9/9/15.
  */
-public class Trailer {
+public class Trailer implements Parcelable{
     private String id;
     private String name;
     private String site;
@@ -21,11 +24,39 @@ public class Trailer {
         this.name = name;
     }
 
+    protected Trailer(Parcel in) {
+        name = in.readString();
+        key = in.readString();
+    }
+
+    public static final Creator<Trailer> CREATOR = new Creator<Trailer>() {
+        @Override
+        public Trailer createFromParcel(Parcel in) {
+            return new Trailer(in);
+        }
+
+        @Override
+        public Trailer[] newArray(int size) {
+            return new Trailer[size];
+        }
+    };
+
     public String getName() {
         return name;
     }
 
     public String getKey() {
         return key;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(key);
     }
 }

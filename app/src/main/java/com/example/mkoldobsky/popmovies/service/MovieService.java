@@ -1,4 +1,4 @@
-package service;
+package com.example.mkoldobsky.popmovies.service;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -28,8 +28,8 @@ public class MovieService {
     private static final int INDEX_COLUMN_VOTE = 4;
     private static final int INDEX_COLUMN_DATE = 5;
 
-    private static final int INDEX_COLUMN_KEY = 0;
-    private static final int INDEX_COLUMN_NAME = 1;
+    private static final int INDEX_COLUMN_NAME = 0;
+    private static final int INDEX_COLUMN_KEY = 1;
 
     private static final int INDEX_COLUMN_AUTHOR = 0;
     private static final int INDEX_COLUMN_CONTENT = 1;
@@ -62,8 +62,8 @@ public class MovieService {
             movieValues.put(MovieContract.MovieEntry.COLUMN_TITLE, movie.getTitle());
             movieValues.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH, movie.getPosterPath());
             movieValues.put(MovieContract.MovieEntry.COLUMN_PLOT, movie.getPlotSynopsis());
-            movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
             movieValues.put(MovieContract.MovieEntry.COLUMN_VOTE, movie.getVoteAverage());
+            movieValues.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movie.getReleaseDate());
 
 
             Uri insertedUri = mContext.getContentResolver().insert(
@@ -131,7 +131,7 @@ public class MovieService {
         Cursor movieCursor = mContext.getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.COLUMN_TITLE, MovieContract.MovieEntry.COLUMN_POSTER_PATH,
-                        MovieContract.MovieEntry.COLUMN_RELEASE_DATE, MovieContract.MovieEntry.COLUMN_PLOT, MovieContract.MovieEntry.COLUMN_VOTE},
+                        MovieContract.MovieEntry.COLUMN_PLOT, MovieContract.MovieEntry.COLUMN_VOTE, MovieContract.MovieEntry.COLUMN_RELEASE_DATE},
                 null,
                 null, null
         );
@@ -144,7 +144,6 @@ public class MovieService {
             Double vote = movieCursor.getDouble(INDEX_COLUMN_VOTE);
             String date = movieCursor.getString(INDEX_COLUMN_DATE);
             Movie movie = new Movie(id, title, path, plot, vote, date);
-            result.add(movie);
 
             Cursor trailerCursor = mContext.getContentResolver().query(
                     MovieContract.TrailerEntry.CONTENT_URI,
@@ -174,6 +173,7 @@ public class MovieService {
             }
             reviewCursor.close();
 
+            result.add(movie);
         }
 
         movieCursor.close();

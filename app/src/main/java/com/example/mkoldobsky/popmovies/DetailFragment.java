@@ -45,7 +45,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import service.MovieService;
+import com.example.mkoldobsky.popmovies.service.MovieService;
 
 public class DetailFragment extends Fragment {
 
@@ -148,7 +148,7 @@ public class DetailFragment extends Fragment {
 
         mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
         mViewHolder.reviewsRecyclerView.setAdapter(mReviewAdapter);
-
+        populateTrailersAndReviews();
 
         updateDetails();
         loadImages();
@@ -189,7 +189,7 @@ public class DetailFragment extends Fragment {
         mViewHolder.reviewsRecyclerView.setHasFixedSize(true);
     }
 
-    private void populateTrailers() {
+    private void populateTrailersAndReviews() {
         mTrailerAdapter.notifyDataSetChanged();
         mReviewAdapter.notifyDataSetChanged();
     }
@@ -458,7 +458,7 @@ public class DetailFragment extends Fragment {
                 showErrorMessage(mErrorMessage);
                 return;
             }
-            populateTrailers();
+            populateTrailersAndReviews();
         }
     }
 

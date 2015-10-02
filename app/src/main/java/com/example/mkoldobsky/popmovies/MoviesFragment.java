@@ -34,7 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import service.MovieService;
+import com.example.mkoldobsky.popmovies.service.MovieService;
 
 /**
  * A placeholder fragment containing a simple view.
