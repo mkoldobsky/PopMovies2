@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MoviesDbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     static final String DATABASE_NAME = "movie.db";
 
@@ -22,14 +22,17 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieContract.ReviewEntry.COLUMN_AUTHOR + " TEXT NOT NULL, " +
                 MovieContract.ReviewEntry.COLUMN_CONTENT + " TEXT NOT NULL, " +
                 MovieContract.ReviewEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
-                "FOREIGN KEY("+ MovieContract.ReviewEntry.COLUMN_MOVIE_ID +") REFERENCES "+ MovieContract.MovieEntry.TABLE_NAME+ "(" + MovieContract.MovieEntry._ID + " )" +
-                " );";
+                "FOREIGN KEY("+ MovieContract.ReviewEntry.COLUMN_MOVIE_ID +") REFERENCES " +
+                MovieContract.MovieEntry.TABLE_NAME+ "(" + MovieContract.MovieEntry._ID + " )" +
+                " ON DELETE CASCADE " + ");";
         final String SQL_CREATE_TRAILER_TABLE = "CREATE TABLE " + MovieContract.TrailerEntry.TABLE_NAME + " (" +
                 MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY," +
                 MovieContract.TrailerEntry.COLUMN_KEY + " TEXT NOT NULL, " +
                 MovieContract.TrailerEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 MovieContract.TrailerEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
-                "FOREIGN KEY("+ MovieContract.TrailerEntry.COLUMN_MOVIE_ID +") REFERENCES "+ MovieContract.MovieEntry.TABLE_NAME+ "(" + MovieContract.MovieEntry._ID + " )" +
+                "FOREIGN KEY("+ MovieContract.TrailerEntry.COLUMN_MOVIE_ID +") REFERENCES "+
+                MovieContract.MovieEntry.TABLE_NAME+ "(" + MovieContract.MovieEntry._ID + " )" +
+                " ON DELETE CASCADE " +
                 " );";
 
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + " (" +
