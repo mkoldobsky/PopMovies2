@@ -182,6 +182,8 @@ public class MoviesFragment extends Fragment {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
         } else {
+            mMovies.clear();
+            mMovieAdapter.updateData(mMovies);
             showErrorMessage(getContext().getString(R.string.network_error));
         }
     }
