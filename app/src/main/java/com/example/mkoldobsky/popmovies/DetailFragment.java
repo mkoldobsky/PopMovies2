@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +53,7 @@ import com.example.mkoldobsky.popmovies.service.MovieService;
 public class DetailFragment extends Fragment {
 
     private static final String MOVIE_SHARE_HASHTAG = " #PopMovies";
+    private static final String MOVIE_KEY = "movie";
     private final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private View mRootView;
@@ -97,6 +100,10 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+        {
+            mMovie = (Movie) savedInstanceState.get(MOVIE_KEY);
+        }
         mMovieService = new MovieService(getActivity());
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mFab = (FloatingActionButton) mRootView.findViewById(R.id.favorite_fab);
@@ -117,7 +124,27 @@ public class DetailFragment extends Fragment {
             }
         });
 
+        NestedScrollView scrollView = (NestedScrollView)mRootView.findViewById(R.id.detail_nested_scrool_view);
+        if (mMovie != null){
+            scrollView.setVisibility(View.VISIBLE);
+            initializeView();
+        } else{
+            scrollView.setVisibility(View.GONE);
+        }
+
         return mRootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(MOVIE_KEY, mMovie);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        populateTrailersAndReviews();
     }
 
     @Override
@@ -139,6 +166,17 @@ public class DetailFragment extends Fragment {
     public void setMovie(Movie movie){
         this.mMovie = movie;
 
+        NestedScrollView scrollView = (NestedScrollView)mRootView.findViewById(R.id.detail_nested_scrool_view);
+        if (mMovie != null){
+            scrollView.setVisibility(View.VISIBLE);
+            initializeView();
+        } else{
+            scrollView.setVisibility(View.GONE);
+        }
+
+    }
+
+    private void initializeView() {
         createViewHolder();
 
         initializeFavoriteIcon();
@@ -156,7 +194,6 @@ public class DetailFragment extends Fragment {
         if (mShareActionProvider != null && mMovie != null) {
             mShareActionProvider.setShareIntent(createShareTrailerIntent());
         }
-
     }
 
     private void initializeFavoriteIcon() {
@@ -181,16 +218,18 @@ public class DetailFragment extends Fragment {
 
     private void initializeReviews() {
         mReviewAdapter = new ReviewAdapter(getActivity(), R.layout.list_item_review, mMovie.getReviews());
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mViewHolder.reviewsListView = (ListView)mRootView.findViewById(R.id.reviews_list_view);
         View empty = mRootView.findViewById(R.id.empty);
         mViewHolder.reviewsListView.setEmptyView(empty);
     }
 
     private void populateTrailersAndReviews() {
-        mTrailerAdapter.notifyDataSetChanged();
-        mReviewAdapter.notifyDataSetChanged();
+        if (mTrailerAdapter != null){
+            mTrailerAdapter.notifyDataSetChanged();
+        }
+        if (mReviewAdapter != null) {
+            mReviewAdapter.notifyDataSetChanged();
+        }
     }
 
     private void setMovieAdditionalInfo() {
@@ -234,6 +273,7 @@ public class DetailFragment extends Fragment {
         Picasso.with(getActivity()).load(builtUri.toString()).into(imageView);
         Picasso.with(getActivity()).load(builtUri.toString())
                 .fit()
+                .centerCrop()
                 .into(mViewHolder.moviePosterImageView);
     }
 
