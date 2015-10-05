@@ -9,7 +9,7 @@ import android.view.MenuItem;
 
 import com.example.mkoldobsky.popmovies.model.Movie;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements DetailFragment.OnFavoriteChangeListener {
     Movie mMovie;
 
 
@@ -38,5 +38,10 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onMovieFavoriteChange() {
+
+
     }
 }

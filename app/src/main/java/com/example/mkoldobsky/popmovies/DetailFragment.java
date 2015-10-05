@@ -1,12 +1,15 @@
 package com.example.mkoldobsky.popmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,11 +48,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import service.MovieService;
+import com.example.mkoldobsky.popmovies.service.MovieService;
 
 public class DetailFragment extends Fragment {
 
     private static final String MOVIE_SHARE_HASHTAG = " #PopMovies";
+    private static final String MOVIE_KEY = "movie";
     private final String LOG_TAG = DetailFragment.class.getSimpleName();
 
     private View mRootView;
@@ -62,8 +67,29 @@ public class DetailFragment extends Fragment {
     MovieService mMovieService;
     ShareActionProvider mShareActionProvider;
 
+    OnFavoriteChangeListener mCallback;
+
+
     public DetailFragment() {
     }
+
+    public interface OnFavoriteChangeListener{
+        public void onMovieFavoriteChange();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnFavoriteChangeListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnFavoriteChangeListener");
+        }
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,6 +100,10 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null)
+        {
+            mMovie = (Movie) savedInstanceState.get(MOVIE_KEY);
+        }
         mMovieService = new MovieService(getActivity());
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mFab = (FloatingActionButton) mRootView.findViewById(R.id.favorite_fab);
@@ -84,15 +114,37 @@ public class DetailFragment extends Fragment {
                     mFab.setImageResource(R.drawable.ic_add_favorite);
                     mMovie.setFavorite(false);
                     mMovieService.deleteMovie(mMovie);
+                    mCallback.onMovieFavoriteChange();
                 } else {
                     mFab.setImageResource(R.drawable.ic_remove_favorite);
                     mMovie.setFavorite(true);
                     mMovieService.addMovie(mMovie);
+                    mCallback.onMovieFavoriteChange();
                 }
             }
         });
 
+        NestedScrollView scrollView = (NestedScrollView)mRootView.findViewById(R.id.detail_nested_scrool_view);
+        if (mMovie != null){
+            scrollView.setVisibility(View.VISIBLE);
+            initializeView();
+        } else{
+            scrollView.setVisibility(View.GONE);
+        }
+
         return mRootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(MOVIE_KEY, mMovie);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        populateTrailersAndReviews();
     }
 
     @Override
@@ -105,7 +157,7 @@ public class DetailFragment extends Fragment {
         // Get the provider and hold onto it to set/change the share intent.
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-        if (mShareActionProvider != null) {
+        if (mShareActionProvider != null && mMovie != null) {
             mShareActionProvider.setShareIntent(createShareTrailerIntent());
         }
         super.onCreateOptionsMenu(menu, inflater);
@@ -114,6 +166,17 @@ public class DetailFragment extends Fragment {
     public void setMovie(Movie movie){
         this.mMovie = movie;
 
+        NestedScrollView scrollView = (NestedScrollView)mRootView.findViewById(R.id.detail_nested_scrool_view);
+        if (mMovie != null){
+            scrollView.setVisibility(View.VISIBLE);
+            initializeView();
+        } else{
+            scrollView.setVisibility(View.GONE);
+        }
+
+    }
+
+    private void initializeView() {
         createViewHolder();
 
         initializeFavoriteIcon();
@@ -123,11 +186,14 @@ public class DetailFragment extends Fragment {
         setMovieAdditionalInfo();
 
         mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
-        mViewHolder.reviewsRecyclerView.setAdapter(mReviewAdapter);
-
+        mViewHolder.reviewsListView.setAdapter(mReviewAdapter);
+        populateTrailersAndReviews();
 
         updateDetails();
         loadImages();
+        if (mShareActionProvider != null && mMovie != null) {
+            mShareActionProvider.setShareIntent(createShareTrailerIntent());
+        }
     }
 
     private void initializeFavoriteIcon() {
@@ -151,29 +217,29 @@ public class DetailFragment extends Fragment {
     }
 
     private void initializeReviews() {
-        mReviewAdapter = new ReviewAdapter(mMovie.getReviews(), R.layout.list_item_review);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
-
-        mViewHolder.reviewsRecyclerView.setLayoutManager(linearLayoutManager);
-        mViewHolder.reviewsRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mViewHolder.reviewsRecyclerView.setHasFixedSize(true);
+        mReviewAdapter = new ReviewAdapter(getActivity(), R.layout.list_item_review, mMovie.getReviews());
+        mViewHolder.reviewsListView = (ListView)mRootView.findViewById(R.id.reviews_list_view);
+        View empty = mRootView.findViewById(R.id.empty);
+        mViewHolder.reviewsListView.setEmptyView(empty);
     }
 
-    private void populateTrailers() {
-        mTrailerAdapter.notifyDataSetChanged();
-        mReviewAdapter.notifyDataSetChanged();
+    private void populateTrailersAndReviews() {
+        if (mTrailerAdapter != null){
+            mTrailerAdapter.notifyDataSetChanged();
+        }
+        if (mReviewAdapter != null) {
+            mReviewAdapter.notifyDataSetChanged();
+        }
     }
 
     private void setMovieAdditionalInfo() {
-        if (Utility.isNetworkAvailable(getActivity())) {
-            FetchMovieInfoTask movieInfoTask = new FetchMovieInfoTask();
-            movieInfoTask.execute("trailers");
-        } else {
-            showErrorMessage(this.getString(R.string.network_error));
+        if (!Utility.isNetworkAvailable(getActivity())) {
+            return;
         }
-
+        if (!mMovie.isFavorite()) {
+            FetchMovieInfoTask movieInfoTask = new FetchMovieInfoTask();
+            movieInfoTask.execute();
+        }
     }
 
     private void createViewHolder() {
@@ -184,7 +250,7 @@ public class DetailFragment extends Fragment {
         mViewHolder.releaseDateTextView = (TextView)mRootView.findViewById(R.id.release_date_textview);
         mViewHolder.userRatingBar = (RatingBar)mRootView.findViewById(R.id.user_rating_bar);
         mViewHolder.trailersRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
-        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
+        mViewHolder.reviewsListView = (ListView)mRootView.findViewById(R.id.reviews_list_view);
     }
 
     private void updateDetails() {
@@ -205,7 +271,10 @@ public class DetailFragment extends Fragment {
         Uri builtUri = Uri.parse("http://image.tmdb.org/t/p/w185" + mMovie.getPosterPath()).buildUpon()
                 .build();
         Picasso.with(getActivity()).load(builtUri.toString()).into(imageView);
-        Picasso.with(getActivity()).load(builtUri.toString()).into(mViewHolder.moviePosterImageView);
+        Picasso.with(getActivity()).load(builtUri.toString())
+                .fit()
+                .centerCrop()
+                .into(mViewHolder.moviePosterImageView);
     }
 
 
@@ -277,10 +346,6 @@ public class DetailFragment extends Fragment {
 
         @Override
         protected Void doInBackground(String... params) {
-
-            if (params.length == 0) {
-                return null;
-            }
 
             mError = false;
             mErrorMessage = "";
@@ -434,7 +499,7 @@ public class DetailFragment extends Fragment {
                 showErrorMessage(mErrorMessage);
                 return;
             }
-            populateTrailers();
+            populateTrailersAndReviews();
         }
     }
 
@@ -467,6 +532,6 @@ public class DetailFragment extends Fragment {
         TextView releaseDateTextView;
         RatingBar userRatingBar;
         RecyclerView trailersRecyclerView;
-        RecyclerView reviewsRecyclerView;
+        ListView reviewsListView;
     }
 }

@@ -34,7 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import service.MovieService;
+import com.example.mkoldobsky.popmovies.service.MovieService;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -52,6 +52,7 @@ public class MoviesFragment extends Fragment {
     String mSortOrder;
 
     OnMovieSelectedListener mCallback;
+
 
     public interface OnMovieSelectedListener{
         // Container Activity must implement this interface
@@ -93,7 +94,7 @@ public class MoviesFragment extends Fragment {
 
         mMovieService = new MovieService(getActivity());
 
-        mSortOrder = Utility.getPrefSortOrder(getActivity());
+        setSortOrder();
 
         if (savedInstanceState != null)
         {
@@ -105,7 +106,6 @@ public class MoviesFragment extends Fragment {
 
         mMovieAdapter = new MovieAdapter(this.getActivity(), R.layout.grid_item_movie, mMovies);
 
-        Utility.setPrefSortOrder(getActivity(), mSortOrder);
 
         setActivityTitle(getTitle(mSortOrder));
         GridView moviesGridView = (GridView)rootView.findViewById(R.id.moviesGridView);
@@ -128,9 +128,18 @@ public class MoviesFragment extends Fragment {
         return rootView;
     }
 
+    private void setSortOrder() {
+        mSortOrder = Utility.getPrefSortOrder(getActivity());
+
+        if (mSortOrder == null){
+            mSortOrder = Constants.MOST_POPULAR_SORT_ORDER;
+            Utility.setPrefSortOrder(getActivity(), mSortOrder);
+        }
+    }
+
     private String getTitle(String sortOrder) {
-        return sortOrder == Constants.MOST_POPULAR_SORT_ORDER ? getActivity().getString(R.string.action_most_popular) :
-                sortOrder == Constants.HIGHEST_RATED_SORT_ORDER ? getActivity().getString(R.string.action_highest_rated) :
+        return sortOrder.equals(Constants.MOST_POPULAR_SORT_ORDER) ? getActivity().getString(R.string.action_most_popular) :
+                sortOrder.equals(Constants.HIGHEST_RATED_SORT_ORDER) ? getActivity().getString(R.string.action_highest_rated) :
                         getActivity().getString(R.string.action_favorites);
     }
 
@@ -138,7 +147,7 @@ public class MoviesFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        mSortOrder = Utility.getPrefSortOrder(getActivity());
+        setSortOrder();
         updateMovies(mSortOrder);
         setActivityTitle(getTitle(mSortOrder));
     }
@@ -149,12 +158,20 @@ public class MoviesFragment extends Fragment {
         outState.putParcelableArrayList(MOVIES_KEY, (ArrayList<? extends Parcelable>) mMovies);
     }
 
+    public void updateFavorites() {
+        setSortOrder();
+        if (mSortOrder.equals(Constants.FAVORITES)){
+            updateMovies(mSortOrder);
+        }
+
+    }
+
 
     private void updateMovies(String sortOrder) {
-        if (sortOrder == Constants.FAVORITES) {
+        if (sortOrder.equals(Constants.FAVORITES)) {
             ArrayList<Movie> favorites = mMovieService.getMovies();
             mMovies.clear();
-            if (favorites != null) {
+            if (favorites != null && mMovieAdapter != null) {
                 mMovieAdapter.updateData(favorites);
             }
 
@@ -165,6 +182,8 @@ public class MoviesFragment extends Fragment {
             FetchMoviesTask moviesTask = new FetchMoviesTask();
             moviesTask.execute(sortOrder);
         } else {
+            mMovies.clear();
+            mMovieAdapter.updateData(mMovies);
             showErrorMessage(getContext().getString(R.string.network_error));
         }
     }
@@ -323,13 +342,13 @@ public class MoviesFragment extends Fragment {
         private Uri getUri(String sortOrder) {
             // https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=popularity.desc
             //https://api.themoviedb.org/3/discover/movie?api_key=xxxx&sort_by=vote_average.desc
-            final String FORECAST_BASE_URL =
+            final String MOVIE_BASE_URL =
                     "https://api.themoviedb.org/3/discover/movie?";
             final String API_KEY_PARAM = "api_key";
             final String SORT_BY_PARAM = "sort_by";
-            final String SORT_BY_VALUE = sortOrder == MOST_POPULAR ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
+            final String SORT_BY_VALUE = sortOrder.equals(Constants.MOST_POPULAR_SORT_ORDER) ? MOST_POPULAR_VALUE : HIGHEST_RATED_VALUE;
 
-            return Uri.parse(FORECAST_BASE_URL).buildUpon()
+            return Uri.parse(MOVIE_BASE_URL).buildUpon()
                     .appendQueryParameter(API_KEY_PARAM, Constants.API_KEY)
                     .appendQueryParameter(SORT_BY_PARAM, SORT_BY_VALUE)
                     .build();
