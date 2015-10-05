@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -147,7 +148,7 @@ public class DetailFragment extends Fragment {
         setMovieAdditionalInfo();
 
         mViewHolder.trailersRecyclerView.setAdapter(mTrailerAdapter);
-        mViewHolder.reviewsRecyclerView.setAdapter(mReviewAdapter);
+        mViewHolder.reviewsListView.setAdapter(mReviewAdapter);
         populateTrailersAndReviews();
 
         updateDetails();
@@ -179,14 +180,12 @@ public class DetailFragment extends Fragment {
     }
 
     private void initializeReviews() {
-        mReviewAdapter = new ReviewAdapter(mMovie.getReviews(), R.layout.list_item_review);
+        mReviewAdapter = new ReviewAdapter(getActivity(), R.layout.list_item_review, mMovie.getReviews());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
-
-        mViewHolder.reviewsRecyclerView.setLayoutManager(linearLayoutManager);
-        mViewHolder.reviewsRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mViewHolder.reviewsRecyclerView.setHasFixedSize(true);
+        mViewHolder.reviewsListView = (ListView)mRootView.findViewById(R.id.reviews_list_view);
+        View empty = mRootView.findViewById(R.id.empty);
+        mViewHolder.reviewsListView.setEmptyView(empty);
     }
 
     private void populateTrailersAndReviews() {
@@ -212,7 +211,7 @@ public class DetailFragment extends Fragment {
         mViewHolder.releaseDateTextView = (TextView)mRootView.findViewById(R.id.release_date_textview);
         mViewHolder.userRatingBar = (RatingBar)mRootView.findViewById(R.id.user_rating_bar);
         mViewHolder.trailersRecyclerView = (RecyclerView)mRootView.findViewById(R.id.trailers_recycler_view);
-        mViewHolder.reviewsRecyclerView = (RecyclerView)mRootView.findViewById(R.id.reviews_recycler_view);
+        mViewHolder.reviewsListView = (ListView)mRootView.findViewById(R.id.reviews_list_view);
     }
 
     private void updateDetails() {
@@ -491,6 +490,6 @@ public class DetailFragment extends Fragment {
         TextView releaseDateTextView;
         RatingBar userRatingBar;
         RecyclerView trailersRecyclerView;
-        RecyclerView reviewsRecyclerView;
+        ListView reviewsListView;
     }
 }
