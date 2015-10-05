@@ -232,7 +232,9 @@ public class DetailFragment extends Fragment {
         Uri builtUri = Uri.parse("http://image.tmdb.org/t/p/w185" + mMovie.getPosterPath()).buildUpon()
                 .build();
         Picasso.with(getActivity()).load(builtUri.toString()).into(imageView);
-        Picasso.with(getActivity()).load(builtUri.toString()).into(mViewHolder.moviePosterImageView);
+        Picasso.with(getActivity()).load(builtUri.toString())
+                .fit()
+                .into(mViewHolder.moviePosterImageView);
     }
 
 
